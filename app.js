@@ -15,6 +15,7 @@ var connectionString = process.env.MONGO_URI;
 
 //routes
 app.use("/api/v1/", AuthRouter);
+
 //routes
 //connect to db and then start the server if connection Successful
 const start = async () => {

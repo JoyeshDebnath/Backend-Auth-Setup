@@ -1,6 +1,10 @@
 const User = require("../models/users");
 const { loginValidation, RegisterValidation } = require("../validation");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+//regeister user ...
+
 const RegisterUser = async (req, res) => {
 	// res.send(error.details[0].message);
 	const validation = RegisterValidation(req.body);
@@ -34,4 +38,30 @@ const RegisterUser = async (req, res) => {
 	}
 };
 
-module.exports = { RegisterUser };
+//User Login ..
+const loginUser = async (req, res) => {
+	//check for erreor
+	const { error } = loginValidation(req.body);
+	if (error) {
+		res.status(400).send(error.details[0].message);
+	}
+	//check if the Email entered exists in database already ...
+	const user = await User.findOne({ email: req.body.email });
+	if (!user) {
+		return res
+			.status(400)
+			.send("Email OR password  you entered does not exists !!!");
+	}
+
+	//check the password is valid or not ...
+	const validPass = await bcrypt.compare(req.body.password, user.password);
+	if (!validPass) {
+		res.status(400).send("Email Or password is invalid!");
+	}
+
+	// create and asign a token ....
+	const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
+	res.header("auth-token", token).send(token);
+};
+
+module.exports = { RegisterUser, loginUser };
